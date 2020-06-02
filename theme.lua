@@ -15,15 +15,16 @@ theme.font          = "FiraMono Nerd Font 11"
 
 theme.bg_normal     = "#3c112d"
 theme.bg_focus      = "#e74e3f"
+theme.bg_systray = "#560231"
 theme.bg_urgent     = "#cd2f3f"
 theme.bg_minimize   = "#ffac42"
 theme.bg_systray    = theme.bg_normal
-
+theme.layoutlist_fg_normal = "#3c112d"
 theme.fg_normal     = "#fbd0b7"
 theme.fg_focus      = "#fbd0b7"
 theme.fg_urgent     = "#ffe7d9"
 theme.fg_minimize   = "#ffe7d9"
-
+theme.layoutlist_disable_icon = true
 theme.useless_gap   = dpi(4)
 theme.border_width  = 2
 theme.border_normal = "#860634"

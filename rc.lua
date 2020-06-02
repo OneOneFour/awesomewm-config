@@ -17,9 +17,9 @@ local hotkeys_popup = require("awful.hotkeys_popup")
 -- Enable hotkeys help widget for VIM and other apps
 -- when client with a matching name is opened:
 require("awful.hotkeys_popup.keys")
---local revelation = require("revelation")
-
+local revelation = require("revelation")
 local lain = require("lain")
+
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
 -- another config (This code will only ever execute for the fallback config)
@@ -48,7 +48,7 @@ end
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
 beautiful.init("/home/robert/.config/awesome/theme.lua")
---revelation.init()
+revelation.init()
 
 --naughty.notify({preset=naughty.config.presets.critical,title="HEY REVELATION",text=revelation})
 
@@ -165,21 +165,21 @@ end
 screen.connect_signal("property::geometry", set_wallpaper)
 
 
-local volume = lain.widget.alsa({
-	timeout=0.05,
-	settings=function()
-		if volume_now.status == "off" then
-			widget:set_text("Volume: Muted")
-		else
-			widget:set_text("Volume:"..volume_now.level.."%")
-		end
-	end
-})
-local mem = lain.widget.mem({
-	settings=function()
-		widget:set_text("Memory: "..mem_now.used.."MB ("..mem_now.perc.."%)")
-	end
-})
+--local volume = lain.widget.alsa({
+--	timeout=0.05,
+--	settings=function()
+--		if volume_now.status == "off" then
+--			widget:set_text("Volume: Muted")
+--		else
+--			widget:set_text("Volume:"..volume_now.level.."%")
+--		end
+--	end
+--})
+--local mem = lain.widget.mem({
+--	settings=function()
+--		widget:set_text("Memory: "..mem_now.used.."MB ("..mem_now.perc.."%)")
+--	end
+--})
 
 local tags = {"1 \u{f015} ",
             "2 \u{fa9e} ",
@@ -196,6 +196,57 @@ local layouts = {awful.layout.suit.floating,
                 awful.layout.suit.max,
                 awful.layout.suit.tile,
 		awful.layout.suit.tile}
+
+-- Set up lain widgets
+local markup = lain.util.markup
+local seperators = lain.util.separators
+local arrow = seperators.arrow_left
+os.setlocale(os.getenv("LANG"))
+local clock = awful.widget.watch(
+    "date +'\u{f5ef} %A %d %b %R'", 60,
+    function(widget, stdout)
+        widget:set_markup(" " .. markup.font(beautiful.font, stdout))
+    end)
+
+--CPU
+local cpu = lain.widget.cpu({
+    settings = function()
+        widget:set_markup(markup.font(beautiful.font," \u{fb19} " ..  cpu_now.usage .. "% "))
+    end
+})
+--MEM
+local memory = lain.widget.mem({
+    settings = function()
+        widget:set_markup(markup.font(beautiful.font," \u{f85a} "..  mem_now.used .. "MB "))
+    end
+})
+--VOLUME
+local volIconMute = " \u{fc5d} "
+local volIcon1 = " \u{fa7e} "
+local volIcon2 = " \u{fa7f} "
+local volIcon3 = " \u{fa7d} "
+local volIcon = wibox.widget.textbox("   ")
+local volume = lain.widget.alsa({
+    timeout = 0.3,
+    settings = function()
+        if volume_now.status == "off" then
+            volIcon.text = volIconMute
+            widget:set_markup(markup.font(beautiful.font, "Muted "))
+        else
+            if tonumber(volume_now.level) == 0 then
+                volIcon.text = volIcon1
+            elseif tonumber(volume_now.level) < 50 then
+                volIcon.text = volIcon2
+            else
+                volIcon.text = volIcon3
+            end
+            widget:set_markup(markup.font(beautiful.font, volume_now.level .. "% "))
+        end
+    end
+})
+
+
+
 
 awful.screen.connect_for_each_screen(function(s)
     -- Wallpaper
@@ -214,6 +265,12 @@ awful.screen.connect_for_each_screen(function(s)
                            awful.button({ }, 3, function () awful.layout.inc(-1) end),
                            awful.button({ }, 4, function () awful.layout.inc( 1) end),
                            awful.button({ }, 5, function () awful.layout.inc(-1) end)))
+    local bglb = {
+        s.mylayoutbox,
+        fg = "3c112d",
+        bg = "#fbd0b7",
+        widget = wibox.container.background
+    }
     -- Create a taglist widget
     s.mytaglist = awful.widget.taglist {
         screen  = s,
@@ -241,12 +298,20 @@ awful.screen.connect_for_each_screen(function(s)
         s.mytasklist, -- Middle widget
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
-            wibox.widget.systray(),
-	        mem.widget,
-	        volume.widget,
-            mytextclock,
-            s.mylayoutbox,
+            wibox.layout.margin(wibox.widget.systray(), 7,7,7,7),
+            arrow("alpha","#560231"),
+            wibox.container.background(volIcon,"#560231"),
+            wibox.container.background(volume.widget,"#560231"),
+            arrow("#560231","#850534"),
+            wibox.container.background(memory.widget,"#850534"),
+            arrow("#850534","#cd2f3f"),
+            wibox.container.background(cpu.widget,"#cd2f3f"),
+            arrow("#cd2f3f","#e74e3f"),
+            wibox.container.background(wibox.container.margin(clock,4,8),"#e74e3f"),
+            arrow("#e74e3f","#fe7f4a"),
+            wibox.container.background(wibox.container.margin(s.mylayoutbox,4,4,4,4),"#fe7f4a")
         },
+        -- #e74e3f #fe7f4a #850534 #ef473a #cd2f3f
     }
 end)
 -- }}}
@@ -563,19 +628,27 @@ awful.rules.rules = {
 -- {{{ Signals
 -- Signal function to execute when a new client appears
 -- Set border for maxed clients to 0 
+
 for s = 1, screen.count() do
     screen[s]:connect_signal("arrange", function ()
-        local clients = screen[s].clients
+        local clients = screen[s].tiled_clients
         local layout  = awful.layout.getname(awful.layout.get(s))
         -- No borders with only one visible client or in maximized layout
-        if (#clients <= 1 and layout ~= "floating") or layout =="max" then 
-            for _, c in pairs(clients) do -- Floaters always have borders                                    
+        local isMax = false
+        if client.focus ~= nil then
+            isMax = client.focus.maximized
+        end
+        if (#clients <= 1 and layout ~= "floating") or layout =="max" or isMax then 
+            for _, c in pairs(screen[s].all_clients) do -- Floaters always have borders                                    
                 c.border_width = 0
             end
+        else
+            for _, c in pairs(screen[s].all_clients) do -- Floaters always have borders                                    
+                c.border_width = beautiful.border_width
+            end 
         end
     end)
 end
-
 
 
 client.connect_signal("manage", function (c)
@@ -659,4 +732,4 @@ client.connect_signal("manage", function (c)
 local spawn = require("awful.spawn")
 os.execute("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &")
 spawn.with_shell("picom -cb --experimental-backends --backend glx")
-spawn.single_instance(terminal,{tag=tags[3],urgent=false})
+
