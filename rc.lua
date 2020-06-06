@@ -89,21 +89,6 @@ awful.layout.layouts = {
 
 -- {{{ Menu
 -- Create a launcher widget and a main menu
-myawesomemenu = {
-   { "hotkeys", function() hotkeys_popup.show_help(nil, awful.screen.focused()) end },
-   { "manual", terminal .. " -e man awesome" },
-   { "edit config", editor_cmd .. " " .. awesome.conffile },
-   { "restart", awesome.restart },
-   { "quit", function() awesome.quit() end },
-}
-
-mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
-                                    { "open terminal", terminal }
-                                  }
-                        })
-
-mylauncher = awful.widget.launcher({ image = beautiful.awesome_icon,
-                                     menu = mymainmenu })
 
 -- Menubar configuration
 menubar.utils.terminal = terminal -- Set the terminal for applications that require it
@@ -218,7 +203,8 @@ local cpu = lain.widget.cpu({
 local memory = lain.widget.mem({
     settings = function()
         widget:set_markup(markup.font(beautiful.font," \u{f85a} "..  mem_now.used .. "MB "))
-    end
+	collectgarbage("collect")
+	end
 })
 --VOLUME
 local volIconMute = " \u{fc5d} "
@@ -227,7 +213,7 @@ local volIcon2 = " \u{fa7f} "
 local volIcon3 = " \u{fa7d} "
 local volIcon = wibox.widget.textbox("   ")
 local volume = lain.widget.alsa({
-    timeout = 0.3,
+    timeout = 0.25,
     settings = function()
         if volume_now.status == "off" then
             volIcon.text = volIconMute
@@ -300,7 +286,7 @@ awful.screen.connect_for_each_screen(function(s)
             layout = wibox.layout.fixed.horizontal,
             wibox.layout.margin(wibox.widget.systray(), 7,7,7,7),
             arrow("alpha","#560231"),
-            wibox.container.background(volIcon,"#560231"),
+	    wibox.container.background(volIcon,"#560231"),
             wibox.container.background(volume.widget,"#560231"),
             arrow("#560231","#850534"),
             wibox.container.background(memory.widget,"#850534"),
@@ -338,7 +324,7 @@ globalkeys = gears.table.join(
               {description = "view next", group = "tag"}),
     awful.key({ modkey,           }, "Escape", awful.tag.history.restore,
               {description = "go back", group = "tag"}),
-    awful.key({modkey,},"e",revelation,{description="Launch Revelation",group="awesome"}),
+    awful.key({modkey,},"e",revelation,{description="launch Revelation",group="awesome"}),
     awful.key({ modkey,           }, "j",
         function ()
             awful.client.focus.byidx( 1)
@@ -379,8 +365,8 @@ globalkeys = gears.table.join(
               {description = "open a terminal", group = "launcher"}),
     awful.key({ modkey, "Control" }, "r", awesome.restart,
               {description = "reload awesome", group = "awesome"}),
-    awful.key({ modkey, "Shift"   }, "q", awesome.quit,
-              {description = "quit awesome", group = "awesome"}),
+    awful.key({ modkey, "Shift"   }, "q", function() awful.spawn("/home/robert/.config/rofi/scripts/powermenu.sh") end,
+              {description = "show power menu", group = "awesome"}),
 
     awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)          end,
               {description = "increase master width factor", group = "layout"}),
@@ -425,9 +411,8 @@ globalkeys = gears.table.join(
                   }
               end,
               {description = "lua execute prompt", group = "awesome"}),
-    -- Menubar
-    awful.key({ modkey }, "p", function() menubar.show() end,
-              {description = "show the menubar", group = "launcher"})
+   awful.key({"Mod1"},"Tab",function() awful.util.spawn("rofi -show window") end,
+            {description = "show window switcher",group="launcher"})
 )
 
 clientkeys = gears.table.join(
