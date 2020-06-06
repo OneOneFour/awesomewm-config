@@ -717,4 +717,3 @@ client.connect_signal("manage", function (c)
 local spawn = require("awful.spawn")
 os.execute("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &")
 spawn.with_shell("picom -cb --experimental-backends --backend glx")
-
