@@ -166,13 +166,14 @@ screen.connect_signal("property::geometry", set_wallpaper)
 --	end
 --})
 
-local tags = {"1 \u{f015} ",
-            "2 \u{fa9e} ",
-            "3 \u{f120} ",
-            "4 \u{f121} ",
-            "5 \u{f11b} ",
-            "6 \u{f1bc} ",
-	    "7 \u{f868} "
+local tags = {"1 \u{f015} ", -- 1 Home
+            "2 \u{fa9e} ", -- 2 Web
+            "3 \u{f120} ", -- 3 Terminal
+            "4 \u{f121} ", -- 4 IDE
+            "5 \u{f11b} ", -- 5 Games
+            "6 \u{f1bc} ", -- 6 Music
+	    "7 \u{f868} ", -- 7 Messaging
+	    "8 \u{f040}" -- 8 Creative
 }
 local layouts = {awful.layout.suit.floating,
                 awful.layout.suit.tile,
@@ -304,7 +305,6 @@ end)
 
 -- {{{ Mouse bindings
 root.buttons(gears.table.join(
-    awful.button({ }, 3, function () mymainmenu:toggle() end),
     awful.button({ }, 4, awful.tag.viewnext),
     awful.button({ }, 5, awful.tag.viewprev)
 ))
