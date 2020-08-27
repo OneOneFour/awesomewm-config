@@ -716,4 +716,5 @@ client.connect_signal("manage", function (c)
 -- Autostart Applications
 local spawn = require("awful.spawn")
 os.execute("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &")
+spawn("amixer set Master unmute")
 spawn.with_shell("picom -cb --experimental-backends --backend glx")
