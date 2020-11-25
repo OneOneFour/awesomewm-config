@@ -586,8 +586,8 @@ awful.rules.rules = {
     },
     -- Add title bars to normal clients and dialogs
     {
-        rule_any = {type={"dialog"}
-        }, 
+        rule_any = {type={"dialog"} },
+	except_any = {class={"Org.gnome.Nautilus"}},
         properties = {titlebars_enabled=true}
     },
     
